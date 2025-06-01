@@ -11,7 +11,7 @@ export default function Home() {
 
     // Force redirect after 60 seconds, regardless of tab state
     const timer = setTimeout(() => {
-      window.location.href = 'https://discord.gg/RZ8qmCUZ';
+      window.close();
     }, 60000);
 
     return () => clearTimeout(timer);
