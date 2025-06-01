@@ -4,22 +4,27 @@ export default function Home() {
   const [key, setKey] = useState('');
 
   useEffect(() => {
-    const storedKey = localStorage.getItem('access_key');
-    const referrer = document.referrer;
+    const storedKey = sessionStorage.getItem('accessKey');
 
-    // Check if they came from Linkvertise
-    const cameFromLinkvertise = referrer.includes('linkvertise');
+    // Only fetch a new key if:
+    // - There's no stored key
+    // - AND the user came from LootLabs or Loot-Links
+    if (!storedKey) {
+      const referrer = document.referrer;
 
-    if (cameFromLinkvertise || !storedKey) {
-      // Generate a new key
-      fetch('/api/key')
-        .then((res) => res.json())
-        .then((data) => {
-          localStorage.setItem('access_key', data.key);
-          setKey(data.key);
-        });
+      const isFromLoot = /loot(links|labs)/i.test(referrer);
+
+      if (isFromLoot) {
+        fetch('/api/key')
+          .then((res) => res.json())
+          .then((data) => {
+            setKey(data.key);
+            sessionStorage.setItem('accessKey', data.key);
+          });
+      } else {
+        setKey('No key. You must access from lootlabs/linkvertise.');
+      }
     } else {
-      // Use stored key
       setKey(storedKey);
     }
   }, []);
@@ -40,4 +45,3 @@ export default function Home() {
     </div>
   );
 }
-
