@@ -1,27 +1,37 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 
 export default function Home() {
+  const router = useRouter();
   const [key, setKey] = useState('');
 
   useEffect(() => {
-    // Detect if this is a browser reload
-    const navEntries = performance.getEntriesByType("navigation");
-    const isReload = navEntries.length > 0 && navEntries[0].type === "reload";
+    // Parse URL for ?visit= param
+    const urlParams = new URLSearchParams(window.location.search);
+    const visitId = urlParams.get('visit');
 
-    const storedKey = sessionStorage.getItem('accessKey');
-
-    if (storedKey && isReload) {
-      // If user refreshed, just show the same key
-      setKey(storedKey);
-    } else {
-      // Generate a new key and store it (first visit or new tab)
-      fetch('/api/key')
-        .then((res) => res.json())
-        .then((data) => {
-          sessionStorage.setItem('accessKey', data.key);
-          setKey(data.key);
-        });
+    if (!visitId) {
+      // No visit ID? Generate one and redirect with it (treated as new visit)
+      const newVisitId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+      urlParams.set('visit', newVisitId);
+      window.location.search = urlParams.toString(); // Force reload with visit param
+      return;
     }
+
+    // Check if we already stored a key for this visit
+    const stored = sessionStorage.getItem(`key-${visitId}`);
+    if (stored) {
+      setKey(stored);
+      return;
+    }
+
+    // Otherwise fetch a new key and save it tied to this visit ID
+    fetch('/api/key')
+      .then((res) => res.json())
+      .then((data) => {
+        sessionStorage.setItem(`key-${visitId}`, data.key);
+        setKey(data.key);
+      });
   }, []);
 
   const copyToClipboard = () => {
