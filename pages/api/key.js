@@ -1,9 +1,6 @@
 export default function handler(req, res) {
-  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let randomPart = '';
-  for (let i = 0; i < 13; i++) {
-    randomPart += charset.charAt(Math.floor(Math.random() * charset.length));
-  }
-  const key = 'TJ-' + randomPart;
-  res.status(200).json({ key });
+  // Generate a random 16-digit key starting with TJ-
+  const key = 'TJ-' + Math.random().toString(36).substring(2, 10).toUpperCase() +
+                     Math.random().toString(36).substring(2, 10).toUpperCase();
+  res.status(200).json({ key: key.substring(0, 16) });
 }
