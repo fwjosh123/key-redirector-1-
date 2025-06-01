@@ -4,9 +4,24 @@ export default function Home() {
   const [key, setKey] = useState('');
 
   useEffect(() => {
-    fetch('/api/key')
-      .then((res) => res.json())
-      .then((data) => setKey(data.key));
+    const storedKey = localStorage.getItem('access_key');
+    const referrer = document.referrer;
+
+    // Check if they came from Linkvertise
+    const cameFromLinkvertise = referrer.includes('linkvertise');
+
+    if (cameFromLinkvertise || !storedKey) {
+      // Generate a new key
+      fetch('/api/key')
+        .then((res) => res.json())
+        .then((data) => {
+          localStorage.setItem('access_key', data.key);
+          setKey(data.key);
+        });
+    } else {
+      // Use stored key
+      setKey(storedKey);
+    }
   }, []);
 
   const copyToClipboard = () => {
@@ -25,3 +40,4 @@ export default function Home() {
     </div>
   );
 }
+
