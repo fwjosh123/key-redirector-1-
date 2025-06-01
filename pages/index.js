@@ -4,14 +4,12 @@ export default function Home() {
   const [key, setKey] = useState('');
 
   useEffect(() => {
-    // Always fetch a new key — every visit, every time
-    fetch('/api/key?' + new Date().getTime())
+    // Always get a fresh key by forcing unique query param
+    fetch('/api/key?ts=' + Date.now())
       .then((res) => res.json())
-      .then((data) => {
-        setKey(data.key);
-      });
+      .then((data) => setKey(data.key));
 
-    // Redirect after 1 minute
+    // Force redirect after 60 seconds, regardless of tab state
     const timer = setTimeout(() => {
       window.location.href = 'https://discord.gg/RZ8qmCUZ';
     }, 60000);
@@ -21,26 +19,30 @@ export default function Home() {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(key);
-    alert('Key copied to clipboard!');
+    alert('Key copied!');
   };
 
   return (
-    <div style={{ fontFamily: 'Arial', textAlign: 'center', marginTop: '100px' }}>
+    <div style={{
+      fontFamily: 'Arial', textAlign: 'center', marginTop: '100px'
+    }}>
       <h1>Your Access Key:</h1>
       <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-        {key || 'Loading key...'}
+        {key || 'Loading...'}
       </p>
+
       {key && (
-        <button
-          onClick={copyToClipboard}
-          style={{ padding: '10px 20px', fontSize: '16px', marginTop: '20px' }}
-        >
+        <button onClick={copyToClipboard}
+          style={{
+            padding: '10px 20px', fontSize: '16px', marginTop: '20px'
+          }}>
           Copy Key
         </button>
       )}
+
       <p style={{ marginTop: '20px', color: 'red' }}>(do not refresh)</p>
       <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
-        You will be redirected in 60 seconds...
+        Redirecting to Discord in 60 seconds...
       </p>
     </div>
   );
