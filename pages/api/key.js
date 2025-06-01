@@ -1,12 +1,41 @@
+import fs from 'fs';
+import path from 'path';
+
+const filePath = path.resolve('./data/keys.json');
+
+function readKeys() {
+  try {
+    const data = fs.readFileSync(filePath, 'utf8');
+    return JSON.parse(data);
+  } catch (err) {
+    return [];
+  }
+}
+
+function writeKeys(keys) {
+  fs.writeFileSync(filePath, JSON.stringify(keys, null, 2));
+}
+
+function generateKey() {
+  return 'TJ-' + Array.from({ length: 16 }, () =>
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)]
+  ).join('');
+}
+
 export default function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  res.setHeader('Surrogate-Control', 'no-store');
+  // Read current keys
+  const keys = readKeys();
 
-  const key = 'TJ-' + [...Array(16)]
-    .map(() => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)])
-    .join('');
+  // Generate a unique key
+  let newKey;
+  do {
+    newKey = generateKey();
+  } while (keys.find(k => k.key === newKey));
 
-  res.status(200).json({ key });
+  // Store as unused key
+  keys.push({ key: newKey, used: false, createdAt: new Date().toISOString() });
+
+  writeKeys(keys);
+
+  res.status(200).json({ key: newKey });
 }
