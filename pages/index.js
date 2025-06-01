@@ -4,16 +4,21 @@ export default function Home() {
   const [key, setKey] = useState('');
 
   useEffect(() => {
-    const existingKey = sessionStorage.getItem('accessKey');
+    // Detect if this is a browser reload
+    const navEntries = performance.getEntriesByType("navigation");
+    const isReload = navEntries.length > 0 && navEntries[0].type === "reload";
 
-    if (existingKey) {
-      setKey(existingKey); // Show the key from earlier this session
+    const storedKey = sessionStorage.getItem('accessKey');
+
+    if (storedKey && isReload) {
+      // If user refreshed, just show the same key
+      setKey(storedKey);
     } else {
-      // Always generate a new key on new visit
+      // Generate a new key and store it (first visit or new tab)
       fetch('/api/key')
         .then((res) => res.json())
         .then((data) => {
-          sessionStorage.setItem('accessKey', data.key); // Save it for refreshes
+          sessionStorage.setItem('accessKey', data.key);
           setKey(data.key);
         });
     }
