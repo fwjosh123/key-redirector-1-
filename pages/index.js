@@ -4,19 +4,19 @@ export default function Home() {
   const [key, setKey] = useState('');
 
   useEffect(() => {
-    // Always fetch a new key on visit
-    fetch('/api/key')
+    // Always fetch a new key — every visit, every time
+    fetch('/api/key?' + new Date().getTime())
       .then((res) => res.json())
       .then((data) => {
         setKey(data.key);
       });
 
-    // After 1 minute, redirect to Discord
+    // Redirect after 1 minute
     const timer = setTimeout(() => {
       window.location.href = 'https://discord.gg/RZ8qmCUZ';
-    }, 60000); // 60,000 ms = 1 minute
+    }, 60000);
 
-    return () => clearTimeout(timer); // Cleanup timer if needed
+    return () => clearTimeout(timer);
   }, []);
 
   const copyToClipboard = () => {
