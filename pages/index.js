@@ -1,37 +1,22 @@
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
 
 export default function Home() {
-  const router = useRouter();
   const [key, setKey] = useState('');
 
   useEffect(() => {
-    // Parse URL for ?visit= param
-    const urlParams = new URLSearchParams(window.location.search);
-    const visitId = urlParams.get('visit');
-
-    if (!visitId) {
-      // No visit ID? Generate one and redirect with it (treated as new visit)
-      const newVisitId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-      urlParams.set('visit', newVisitId);
-      window.location.search = urlParams.toString(); // Force reload with visit param
-      return;
-    }
-
-    // Check if we already stored a key for this visit
-    const stored = sessionStorage.getItem(`key-${visitId}`);
-    if (stored) {
-      setKey(stored);
-      return;
-    }
-
-    // Otherwise fetch a new key and save it tied to this visit ID
+    // Always fetch a fresh key on page load
     fetch('/api/key')
       .then((res) => res.json())
       .then((data) => {
-        sessionStorage.setItem(`key-${visitId}`, data.key);
         setKey(data.key);
       });
+
+    // Set a 30-minute timer to redirect
+    const timeout = setTimeout(() => {
+      window.location.href = 'https://discord.gg/RZ8qmCUZ';
+    }, 30 * 60 * 1000); // 30 minutes
+
+    return () => clearTimeout(timeout); // Cleanup on unmount
   }, []);
 
   const copyToClipboard = () => {
@@ -43,7 +28,7 @@ export default function Home() {
     <div style={{ fontFamily: 'Arial', textAlign: 'center', marginTop: '100px' }}>
       <h1>Your Access Key:</h1>
       <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-        {key || 'Loading key...'}
+        {key || 'Generating key...'}
       </p>
       {key && (
         <button
